@@ -1,0 +1,108 @@
+# Phase 6 — Ansible Playbook: Configure Server for Complaint Management App
+---
+- name: Setup Complaint Management System Server
+  hosts: webservers
+  become: yes
+  vars:
+    app_name: complaint-management-system
+    app_dir: /opt/{{ app_name }}
+    docker_compose_version: "2.21.0"
+
+  tasks:
+    # --- System Setup ---
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-pip
+          - git
+        state: present
+      when: ansible_os_family == "Debian"
+
+    # --- Docker Installation ---
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # --- Application Deployment ---
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Docker Compose file
+      copy:
+        src: ../docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        mode: '0644'
+
+    - name: Copy Dockerfile
+      copy:
+        src: ../Dockerfile
+        dest: "{{ app_dir }}/Dockerfile"
+        mode: '0644'
+
+    - name: Copy application code
+      copy:
+        src: ../app/
+        dest: "{{ app_dir }}/app/"
+        mode: '0644'
+
+    # --- Start Application ---
+    - name: Start application with Docker Compose
+      command: docker compose up -d --build
+      args:
+        chdir: "{{ app_dir }}"
+
+    # --- Verification ---
+    - name: Wait for application to be ready
+      uri:
+        url: "http://localhost:5000/health"
+        status_code: 200
+      register: health_check
+      retries: 10
+      delay: 5
+      until: health_check.status == 200
+      ignore_errors: yes
+
+    - name: Display deployment status
+      debug:
+        msg: |
+          ✅ Complaint Management System deployed successfully!
+          🌐 Access URL: http://localhost:5000
+          📊 Health Check: {{ health_check.status | default('pending') }}

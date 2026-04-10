@@ -1,0 +1,16 @@
+# Phase 5 — Kubernetes Service for PostgreSQL
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: complaint-app
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP

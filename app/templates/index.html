@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Management System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2236;
+      --border: rgba(99, 179, 237, 0.12);
+      --accent: #63b3ed;
+      --accent2: #48bb78;
+      --accent3: #f6ad55;
+      --danger: #fc8181;
+      --text: #e2e8f0;
+      --muted: #718096;
+      --heading: #f7fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -40%;
+      left: -20%;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(99, 179, 237, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -30%;
+      right: -10%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(circle, rgba(72, 187, 120, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+    }
+
+    /* HEADER */
+    header {
+      margin-bottom: 40px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #4299e1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--heading);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-text span {
+      color: var(--accent);
+    }
+
+    .version-badge {
+      font-size: 11px;
+      background: rgba(99, 179, 237, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(99, 179, 237, 0.25);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .header-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* STATS */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .stat:hover {
+      border-color: rgba(99, 179, 237, 0.3);
+    }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .stat.blue::before {
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .stat.red::before {
+      background: linear-gradient(90deg, var(--danger), transparent);
+    }
+
+    .stat.green::before {
+      background: linear-gradient(90deg, var(--accent2), transparent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat.blue .stat-num {
+      color: var(--accent);
+    }
+
+    .stat.red .stat-num {
+      color: var(--danger);
+    }
+
+    .stat.green .stat-num {
+      color: var(--accent2);
+    }
+
+    /* MAIN GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* PANEL */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 18px 22px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-icon.blue {
+      background: rgba(99, 179, 237, 0.12);
+    }
+
+    .panel-icon.green {
+      background: rgba(72, 187, 120, 0.12);
+    }
+
+    .panel-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .panel-icon.blue svg {
+      fill: var(--accent);
+    }
+
+    .panel-icon.green svg {
+      fill: var(--accent2);
+    }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--heading);
+    }
+
+    .panel-body {
+      padding: 20px 22px;
+    }
+
+    /* FORM */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23718096' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #4a5568;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(99, 179, 237, 0.5);
+      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.08);
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    /* PRIORITY SELECTOR */
+    .priority-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .priority-opt {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+
+    .priority-opt:hover {
+      border-color: rgba(99, 179, 237, 0.3);
+      color: var(--text);
+    }
+
+    .priority-opt.active.low {
+      background: rgba(72, 187, 120, 0.12);
+      border-color: rgba(72, 187, 120, 0.4);
+      color: var(--accent2);
+    }
+
+    .priority-opt.active.medium {
+      background: rgba(246, 173, 85, 0.12);
+      border-color: rgba(246, 173, 85, 0.4);
+      color: var(--accent3);
+    }
+
+    .priority-opt.active.high {
+      background: rgba(252, 129, 129, 0.12);
+      border-color: rgba(252, 129, 129, 0.4);
+      color: var(--danger);
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .dot.low {
+      background: var(--accent2);
+    }
+
+    .dot.medium {
+      background: var(--accent3);
+    }
+
+    .dot.high {
+      background: var(--danger);
+    }
+
+    /* SUBMIT BUTTON */
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      margin-top: 4px;
+      background: linear-gradient(135deg, var(--accent), #4299e1);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    /* TOAST */
+    .toast {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 14px;
+      background: rgba(72, 187, 120, 0.1);
+      border: 1px solid rgba(72, 187, 120, 0.25);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--accent2);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.show {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* FILTERS */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: rgba(99, 179, 237, 0.3);
+    }
+
+    .filter-btn.active {
+      background: rgba(99, 179, 237, 0.1);
+      border-color: rgba(99, 179, 237, 0.4);
+      color: var(--accent);
+    }
+
+    /* COMPLAINTS LIST */
+    .complaints-scroll {
+      padding: 16px 22px;
+      max-height: 560px;
+      overflow-y: auto;
+    }
+
+    .complaints-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .complaints-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .complaints-scroll::-webkit-scrollbar-thumb {
+      background: rgba(99, 179, 237, 0.2);
+      border-radius: 2px;
+    }
+
+    .complaint-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s, transform 0.15s;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .complaint-card:hover {
+      border-color: rgba(99, 179, 237, 0.25);
+      transform: translateY(-1px);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cc-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .cc-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--heading);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cc-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .cc-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+
+    .cc-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cc-time {
+      font-size: 11px;
+      color: #4a5568;
+    }
+
+    .cc-tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .tag.status-open {
+      background: rgba(252, 129, 129, 0.12);
+      color: var(--danger);
+      border: 1px solid rgba(252, 129, 129, 0.2);
+    }
+
+    .tag.status-progress {
+      background: rgba(246, 173, 85, 0.12);
+      color: var(--accent3);
+      border: 1px solid rgba(246, 173, 85, 0.2);
+    }
+
+    .tag.status-closed {
+      background: rgba(72, 187, 120, 0.12);
+      color: var(--accent2);
+      border: 1px solid rgba(72, 187, 120, 0.2);
+    }
+
+    .tag.cat {
+      background: rgba(99, 179, 237, 0.08);
+      color: #90cdf4;
+      border: 1px solid rgba(99, 179, 237, 0.15);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state svg {
+      width: 40px;
+      height: 40px;
+      fill: #2d3748;
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* SEARCH */
+    .search-wrap {
+      padding: 14px 22px 0;
+    }
+
+    .search-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px 9px 36px;
+      width: 100%;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: rgba(99, 179, 237, 0.4);
+    }
+
+    .search-wrap-inner {
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      fill: var(--muted);
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+
+    <header>
+      <div class="header-top">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+            </svg>
+          </div>
+          <span class="logo-text">Complaint<span>Hub</span></span>
+        </div>
+        <span class="version-badge">CLOUD-NATIVE v1.0</span>
+      </div>
+      <p class="header-sub">End-to-End DevOps Automated · Docker · Kubernetes · GitHub Actions</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat blue">
+        <div class="stat-label">Total</div>
+        <div class="stat-num" id="total-count">0</div>
+      </div>
+      <div class="stat red">
+        <div class="stat-label">Open</div>
+        <div class="stat-num" id="open-count">0</div>
+      </div>
+      <div class="stat green">
+        <div class="stat-label">Resolved</div>
+        <div class="stat-num" id="closed-count">0</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+
+      <!-- SUBMIT PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon blue">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+            </svg>
+          </div>
+          <span class="panel-title">Submit a Complaint</span>
+        </div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="name" placeholder="Your name" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="email" placeholder="you@email.com" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="category">
+              <option>Service Issue</option>
+              <option>Billing Problem</option>
+              <option>Technical Support</option>
+              <option>Product Defect</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <div class="priority-group">
+              <div class="priority-opt low" onclick="setPriority('Low', this)"><span class="dot low"></span>Low</div>
+              <div class="priority-opt medium active" onclick="setPriority('Medium', this)"><span
+                  class="dot medium"></span>Medium</div>
+              <div class="priority-opt high" onclick="setPriority('High', this)"><span class="dot high"></span>High
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Complaint Details</label>
+            <textarea id="complaint" rows="4" placeholder="Describe your issue in detail..."></textarea>
+          </div>
+          <button class="submit-btn" onclick="submitComplaint()">Submit Complaint &rarr;</button>
+          <div class="toast" id="toast">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#48bb78">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+            </svg>
+            Complaint submitted successfully!
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPLAINTS PANEL -->
+      <div class="panel" style="display:flex;flex-direction:column;">
+        <div class="panel-header">
+          <div class="panel-icon green">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5C3.89 4 3 4.9 3 6v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+            </svg>
+          </div>
+          <span class="panel-title">All Complaints</span>
+        </div>
+        <div class="search-wrap">
+          <div class="search-wrap-inner">
+            <svg class="search-icon" viewBox="0 0 24 24">
+              <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+            </svg>
+            <input class="search-input" id="search" placeholder="Search complaints..." oninput="renderComplaints()" />
+          </div>
+        </div>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('Open',this)">Open</button>
+          <button class="filter-btn" onclick="setFilter('In Progress',this)">In Progress</button>
+          <button class="filter-btn" onclick="setFilter('Closed',this)">Closed</button>
+        </div>
+        <div class="complaints-scroll" id="complaints-list">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+            </svg>
+            <p>Loading complaints...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let allComplaints = [];
+    let currentFilter = 'all';
+    let selectedPriority = 'Medium';
+
+    function setPriority(val, el) {
+      selectedPriority = val;
+      document.querySelectorAll('.priority-opt').forEach(o => o.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function setFilter(f, btn) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderComplaints();
+    }
+
+    function updateStats() {
+      document.getElementById('total-count').textContent = allComplaints.length;
+      document.getElementById('open-count').textContent = allComplaints.filter(c => c.status === 'Open').length;
+      document.getElementById('closed-count').textContent = allComplaints.filter(c => c.status === 'Closed').length;
+    }
+
+    function renderComplaints() {
+      const query = (document.getElementById('search').value || '').toLowerCase();
+      let list = currentFilter === 'all' ? allComplaints : allComplaints.filter(c => c.status === currentFilter);
+      if (query) list = list.filter(c => c.name.toLowerCase().includes(query) || c.complaint.toLowerCase().includes(query) || c.email.toLowerCase().includes(query));
+      const div = document.getElementById('complaints-list');
+      if (list.length === 0) {
+        div.innerHTML = `<div class="empty-state">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <p>No complaints found.</p></div>`;
+        return;
+      }
+      div.innerHTML = list.map((c, i) => {
+        const statusClass = c.status === 'Open' ? 'status-open' : c.status === 'Closed' ? 'status-closed' : 'status-progress';
+        const dot = c.priority === 'High' ? 'high' : c.priority === 'Low' ? 'low' : 'medium';
+        return `<div class="complaint-card" style="animation-delay:${i * 0.05}s">
+        <div class="cc-top">
+          <div class="cc-name"><span class="dot ${dot}"></span>${c.name}</div>
+        </div>
+        <div class="cc-meta">${c.email} &middot; ${c.category || 'General'}</div>
+        <div class="cc-text">${c.complaint}</div>
+        <div class="cc-footer">
+          <span class="cc-time">${c.created_at}</span>
+          <div class="cc-tags">
+            <span class="tag cat">${c.priority || 'Medium'}</span>
+            <span class="tag ${statusClass}">${c.status}</span>
+          </div>
+        </div>
+      </div>`;
+      }).join('');
+    }
+
+    async function loadComplaints() {
+      try {
+        const res = await fetch('/complaints');
+        allComplaints = await res.json();
+        updateStats();
+        renderComplaints();
+      } catch (e) {
+        document.getElementById('complaints-list').innerHTML = '<div class="empty-state"><p>Could not connect to server.</p></div>';
+      }
+    }
+
+    async function submitComplaint() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const complaint = document.getElementById('complaint').value.trim();
+      const category = document.getElementById('category').value;
+      if (!name || !email || !complaint) { alert('Please fill all required fields.'); return; }
+      try {
+        await fetch('/complaints', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, complaint, category, priority: selectedPriority })
+        });
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('complaint').value = '';
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+        loadComplaints();
+      } catch (e) { alert('Failed to submit. Please try again.'); }
+    }
+
+    loadComplaints();
+  </script>
+</body>
+
+</html>

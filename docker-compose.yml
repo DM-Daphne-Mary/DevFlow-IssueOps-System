@@ -1,0 +1,48 @@
+# Phase 3 — Docker Compose: Flask App + PostgreSQL
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: complaints-db
+    environment:
+      POSTGRES_DB: complaintsdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d complaintsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Application
+  web:
+    build: .
+    container_name: complaints-app
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_NAME: complaintsdb
+      DB_USER: admin
+      DB_PASSWORD: admin123
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
