@@ -54,13 +54,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
-          docker tag ${{ env.DOCKER_IMAGE }}:${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest
+          docker build -t "${{ env.DOCKER_IMAGE }}:${{ github.sha }}" .
+          docker tag "${{ env.DOCKER_IMAGE }}:${{ github.sha }}" "${{ env.DOCKER_IMAGE }}:latest"
 
       - name: Test Docker image
         run: |
