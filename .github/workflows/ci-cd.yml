@@ -94,18 +94,20 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
-          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} \
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} \
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:v3
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:v3
+          DOCKER_USER=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr -d '\n\r ')
+          docker build -t "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" .
+          docker tag "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" \
+            "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:latest"
+          docker tag "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" \
+            "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:v3"
+          docker push "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
+          docker push "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:latest"
+          docker push "${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:v3"
 
       - name: Deploy notification
         run: |
+          DOCKER_USER=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr -d '\n\r ')
           echo "✅ Deployment successful!"
-          echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
+          echo "Image: ${DOCKER_USER}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
