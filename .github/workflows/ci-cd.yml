@@ -1,4 +1,3 @@
-# Phase 4 — GitHub Actions CI/CD Pipeline
 name: CI/CD Pipeline
 
 on:
@@ -12,7 +11,8 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # Job 1: Lint and Test
+
+  # ── Job 1: Lint and Test ──────────────────────────────────────────────────
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
           cd app
           python -m pytest tests/ -v --tb=short
 
-  # Job 2: Build Docker Image
+  # ── Job 2: Build Docker Image ─────────────────────────────────────────────
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
@@ -53,9 +53,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         run: |
@@ -75,7 +72,7 @@ jobs:
           docker stop test-container || true
           docker rm test-container || true
 
-  # Job 3: Deploy (only on push to main)
+  # ── Job 3: Deploy (main branch pushes only) ───────────────────────────────
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
@@ -86,6 +83,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: VERIFY SECRETS BEFORE DEPLOY
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "::error title=Missing Secret::DOCKER_USERNAME is empty! Please go to your GitHub Repo -> Settings -> Secrets and variables -> Actions -> 'New repository secret'. Add 'DOCKER_USERNAME' with your Docker Hub username."
+            exit 1
+          fi
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -94,18 +98,21 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
-          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} \
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }} \
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:v3
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:v3
+          # Use a variable to prevent newlines in the secret from breaking the command
+          DOCKER_USER=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr -d '\n\r ')
+          docker build -t "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" .
+          docker tag "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" \
+            "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:latest"
+          docker tag "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:${{ github.sha }}" \
+            "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:v3"
+          docker push "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
+          docker push "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:latest"
+          docker push "$DOCKER_USER/${{ env.DOCKER_IMAGE }}:v3"
 
       - name: Deploy notification
         run: |
+          DOCKER_USER=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr -d '\n\r ')
           echo "✅ Deployment successful!"
-          echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
+          echo "Image: $DOCKER_USER/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
