@@ -86,7 +86,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # FIX 1 (repeated): Buildx must be set up in every job that calls
+      - name: Validate Docker Hub secrets
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "::error::DOCKER_USERNAME secret is not set. Go to Settings → Secrets → Actions and add it."
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::error::DOCKER_PASSWORD secret is not set. Go to Settings → Secrets → Actions and add it."
+            exit 1
+          fi
+          echo "✅ Docker Hub secrets are configured."
+
+      # Buildx must be set up in every job that calls
       # docker/build-push-action — each job runs on a fresh runner.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
